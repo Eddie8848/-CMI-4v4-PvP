@@ -272,8 +272,8 @@ edward:{
      desc:'体力回满+1，HP+45%，圣人模式（+300盾,+100HP,+25%伤,+3触发）',
      use(B,me,T){me.stamina=Math.min(me.maxStamina+1,9);B.healChar(me,Math.floor(me.maxHp*.65));B.addBuff(me,'saint_mode',{val:.25,dur:999});me.shield+=500;me.hp+=300;me.triggerValue=Math.min(me.triggerValue+4,TRIGGER_MAX);B.log(`${me.name}「来一发」！圣人模式，护盾+400，触发+3`,'heal')}},
     {id:'s3',name:'闪电五连鞭',cost:4,tv:2,targetType:'single_enemy',
-     desc:'5连击：75%→95%→155%→195%→255%法伤，每鞭80%眩晕',
-     use(B,me,T){const t=T[0];[.75,.95,1.55,1.95,2.55].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
+     desc:'5连击：65%→90%→135%→185%→235%法伤，每鞭80%眩晕',
+     use(B,me,T){const t=T[0];[.65,.85,1.35,1.85,2.35].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
   ],
   ultimate:{name:'领域展开：手冲世界',tv:10,targetType:'all_enemies',
     desc:'145%全体法伤，蛇鲸判定循环（25%触发220%伤，超10次特殊效果）',
@@ -331,7 +331,7 @@ lucas:{
 
 toma:{
   id:'toma',name:'托马 SSR',rarity:'SSR',role:'坦克/召唤',emoji:'💥',color:'#ef4444',
-  hp:1000,atk:100,initStamina:5,maxStamina:8,initShield:0,
+  hp:2500,atk:200,initStamina:5,maxStamina:8,initShield:300,
   initStats:{rage:false},
   passiveInfo:'血量<50%暴怒（+30%伤，每低10%再+10%）',
   applyPassive(c,B){const p=c.hp/c.maxHp;c.stats.rage=p<.5;c._rageBonus=p<.5?0.3+Math.floor((.5-p)/.1)*.1:0;},
@@ -346,7 +346,7 @@ toma:{
      desc:'1-4人130%伤+伤害-40%+眩晕1-3回',
      use(B,me,T){const r=Math.random();const n=r<.3?4:r<.5?3:r<.7?2:1;[...T].filter(e=>e.alive).sort(()=>Math.random()-.5).slice(0,n).forEach(e=>{B.dealDmg(me,e,1.3,'physical');B.addDebuff(e,'dmg_down',{val:.4,dur:3});const sd=Math.random()<.3?3:Math.random()<.7?2:1;B.addDebuff(e,'stun',{dur:sd});B.log(`  →${e.name}: 130%伤，-40%，眩晕${sd}回`,'combat')});B.log(`${me.name}「爆蛋」捏中${n}人`,'skill')}}
   ],
-  ultimate:{name:'回来把我的蛋',tv:10,targetType:'all_allies',
+  ultimate:{name:'回来把我的蛋',tv:8,targetType:'all_allies',
     desc:'召回全部队友（含阵亡），全队HP+300，盾+200，体力+3，触发+2，技能+30%',
     use(B,me,T){B.log(`💀 ${me.name}「回来把我的蛋」！全队复活！`,'ultimate');B.getTeam(me).forEach(a=>{if(!a.alive){a.alive=true;a.hp=Math.max(1,Math.floor(a.maxHp*.3));B.log(`  ⟳ ${a.name}复活！`,'heal')}B.healChar(a,300);a.shield+=200;a.stamina=Math.min(a.stamina+3,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+2,TRIGGER_MAX);B.addBuff(a,'skill_up',{val:.3,dur:999});})}},
   recall:{name:'托马的备用炸弹',desc:'全队+500护盾，全体敌人100%法伤',
