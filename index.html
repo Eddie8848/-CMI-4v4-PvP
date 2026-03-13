@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4v4 决斗竞技场 · 全角色版</title>
+<title>CMIS 4v4 决斗竞技场 · 全角色版</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Orbitron:wght@400;700;900&display=swap');
 :root{--bg:#05080f;--panel:#0d1320;--panel2:#111927;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff2d6b;--accent3:#ffd700;--green:#00ff88;--purple:#c084fc;--text:#d4e8ff;--text2:#6b8aaa;--red:#ff3b3b;--gold:#ffd700}
@@ -267,17 +267,17 @@ edward:{
   skills:[
     {id:'s1',name:'抽象化',cost:2,tv:2,targetType:'all_enemies',
      desc:'全体50%法伤，眩晕1-3人，+逃脱概率',
-     use(B,me,T){T.forEach(t=>B.dealDmg(me,t,.5,'magic'));const r=Math.random();const n=r<.1?3:r<.4?2:1;[...T].sort(()=>Math.random()-.5).slice(0,n).forEach(t=>B.addDebuff(t,'stun',{dur:1}));me.stats.escapeBonus=(me.stats.escapeBonus||0)+.5;B.log(`${me.name}「抽象化」全体50%法伤，${n}人眩晕，逃脱↑`,'skill')}},
+     use(B,me,T){T.forEach(t=>B.dealDmg(me,t,.6,'magic'));const r=Math.random();const n=r<.1?3:r<.4?2:1;[...T].sort(()=>Math.random()-.5).slice(0,n).forEach(t=>B.addDebuff(t,'stun',{dur:1}));me.stats.escapeBonus=(me.stats.escapeBonus||0)+.5;B.log(`${me.name}「抽象化」全体50%法伤，${n}人眩晕，逃脱↑`,'skill')}},
     {id:'s2',name:'来一发',cost:2,tv:2,targetType:'self',
      desc:'体力回满+1，HP+45%，圣人模式（+300盾,+100HP,+25%伤,+3触发）',
-     use(B,me,T){me.stamina=Math.min(me.maxStamina+1,9);B.healChar(me,Math.floor(me.maxHp*.45));B.addBuff(me,'saint_mode',{val:.25,dur:999});me.shield+=300;me.hp+=100;me.triggerValue=Math.min(me.triggerValue+3,TRIGGER_MAX);B.log(`${me.name}「来一发」！圣人模式，护盾+300，触发+3`,'heal')}},
+     use(B,me,T){me.stamina=Math.min(me.maxStamina+1,9);B.healChar(me,Math.floor(me.maxHp*.60));B.addBuff(me,'saint_mode',{val:.25,dur:999});me.shield+=400;me.hp+=200;me.triggerValue=Math.min(me.triggerValue+3,TRIGGER_MAX);B.log(`${me.name}「来一发」！圣人模式，护盾+300，触发+3`,'heal')}},
     {id:'s3',name:'闪电五连鞭',cost:4,tv:2,targetType:'single_enemy',
      desc:'5连击：40%→85%→130%→175%→220%法伤，每鞭80%眩晕',
-     use(B,me,T){const t=T[0];[.4,.85,1.3,1.75,2.2].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
+     use(B,me,T){const t=T[0];[.55,.95,1.55,1.95,2.55].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
   ],
   ultimate:{name:'领域展开：手冲世界',tv:10,targetType:'all_enemies',
     desc:'145%全体法伤，蛇鲸判定循环（25%触发220%伤，超10次特殊效果）',
-    use(B,me,T){me.stats.kidneyWarrior=(me.stats.kidneyWarrior||0)+1;if(me.stats.kidneyWarrior>=2)B.addBuff(me,'kidney_warrior',{val:.2*me.stats.kidneyWarrior,dur:999});B.log(`🌍 ${me.name}「手冲世界」！`,'ultimate');T.forEach(e=>{const d=B.dealDmg(me,e,1.45,'magic');B.log(`  →${e.name}: ${d}法伤`,'combat')});let j=0,sw=0;while(true){j++;const isSW=j<=3?(Math.random()<.25):(Math.random()<.3);if(isSW){sw++;T.forEach(e=>{if(e.alive){const d=B.dealDmg(me,e,j<=3?2.2:.7,'magic');B.log(`  🐋蛇鲸！→${e.name}: ${d}`,'combat')}});B.getTeam(me).forEach(a=>{if(a.alive){B.healChar(a,100);a.stamina=Math.min(a.stamina+2,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+2,TRIGGER_MAX)}})}else{T.forEach(e=>{if(e.alive)B.dealDmg(me,e,.85,'magic')})}if(j>=10){T.forEach(e=>{if(e.alive)B.dealDmg(me,e,22,'magic')});B.log(`  💥手冲超10次！爆发22000%！`,'ultimate');break;}if(j>=5&&Math.random()<.35)break;}B.log(`  手冲结束：${j}次判定 ${sw}次蛇鲸`,'system');}},
+    use(B,me,T){me.stats.kidneyWarrior=(me.stats.kidneyWarrior||0)+1;if(me.stats.kidneyWarrior>=2)B.addBuff(me,'kidney_warrior',{val:.2*me.stats.kidneyWarrior,dur:999});B.log(`🌍 ${me.name}「手冲世界」！`,'ultimate');T.forEach(e=>{const d=B.dealDmg(me,e,1.65,'magic');B.log(`  →${e.name}: ${d}法伤`,'combat')});let j=0,sw=0;while(true){j++;const isSW=j<=3?(Math.random()<.25):(Math.random()<.3);if(isSW){sw++;T.forEach(e=>{if(e.alive){const d=B.dealDmg(me,e,j<=3?2.2:.7,'magic');B.log(`  🐋蛇鲸！→${e.name}: ${d}`,'combat')}});B.getTeam(me).forEach(a=>{if(a.alive){B.healChar(a,100);a.stamina=Math.min(a.stamina+2,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+2,TRIGGER_MAX)}})}else{T.forEach(e=>{if(e.alive)B.dealDmg(me,e,.95,'magic')})}if(j>=10){T.forEach(e=>{if(e.alive)B.dealDmg(me,e,22,'magic')});B.log(`  💥手冲超10次！爆发22000%！`,'ultimate');break;}if(j>=5&&Math.random()<.35)break;}B.log(`  手冲结束：${j}次判定 ${sw}次蛇鲸`,'system');}},
   recall:{name:'两个卤蛋的欢乐时光',desc:'退场2回合，回来时伤害+100%',
     use(B,me){B.addBuff(me,'egg_power',{val:1.0,dur:999});B.addDebuff(me,'offstage',{dur:2});B.log(`🥚 ${me.name}「卤蛋」！退场2回合，伤+100%`,'skill')}}
 },
