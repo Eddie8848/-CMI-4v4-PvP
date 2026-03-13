@@ -260,7 +260,7 @@ addy:{
 },
 
 edward:{
-  id:'edward',name:'爱德哇 SSSR',rarity:'SSSR',role:'攻击/领域',emoji:'⚡',color:'#ffd700',
+  id:'edward',name:'爱德哇 SSSR-',rarity:'SSSR',role:'攻击/领域',emoji:'⚡',color:'#ffd700',
   hp:1000,atk:200,initStamina:5,maxStamina:8,initShield:200,
   initStats:{kidneyWarrior:0,escapeBonus:0},
   passiveInfo:'初始HP1000/无上限，护盾200；肾斗士（大招2次后+20%伤，可叠加）；逃脱被动可叠加',
@@ -272,12 +272,12 @@ edward:{
      desc:'体力回满+1，HP+45%，圣人模式（+300盾,+100HP,+25%伤,+3触发）',
      use(B,me,T){me.stamina=Math.min(me.maxStamina+1,9);B.healChar(me,Math.floor(me.maxHp*.65));B.addBuff(me,'saint_mode',{val:.25,dur:999});me.shield+=500;me.hp+=300;me.triggerValue=Math.min(me.triggerValue+4,TRIGGER_MAX);B.log(`${me.name}「来一发」！圣人模式，护盾+400，触发+3`,'heal')}},
     {id:'s3',name:'闪电五连鞭',cost:4,tv:2,targetType:'single_enemy',
-     desc:'5连击：65%→90%→135%→185%→235%法伤，每鞭80%眩晕',
-     use(B,me,T){const t=T[0];[.65,.85,1.35,1.85,2.35].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
+     desc:'5连击：60%→80%→125%→175%→225%法伤，每鞭80%眩晕',
+     use(B,me,T){const t=T[0];[.60,.80,1.25,1.75,2.25].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'magic');if(t.alive&&Math.random()<.8)B.addDebuff(t,'stun',{dur:1});B.log(`  鞭${i+1}→${t.name}: ${d}法伤`,'combat')});B.log(`${me.name}「闪电五连鞭」完成`,'skill')}}
   ],
   ultimate:{name:'领域展开：手冲世界',tv:10,targetType:'all_enemies',
     desc:'145%全体法伤，蛇鲸判定循环（25%触发220%伤，超10次特殊效果）',
-    use(B,me,T){me.stats.kidneyWarrior=(me.stats.kidneyWarrior||0)+1;if(me.stats.kidneyWarrior>=2)B.addBuff(me,'kidney_warrior',{val:.2*me.stats.kidneyWarrior,dur:999});B.log(`🌍 ${me.name}「手冲世界」！`,'ultimate');T.forEach(e=>{const d=B.dealDmg(me,e,1.95,'magic');B.log(`  →${e.name}: ${d}法伤`,'combat')});let j=0,sw=0;while(true){j++;const isSW=j<=3?(Math.random()<.25):(Math.random()<.3);if(isSW){sw++;T.forEach(e=>{if(e.alive){const d=B.dealDmg(me,e,j<=3?2.2:.7,'magic');B.log(`  🐋蛇鲸！→${e.name}: ${d}`,'combat')}});B.getTeam(me).forEach(a=>{if(a.alive){B.healChar(a,100);a.stamina=Math.min(a.stamina+2,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+2,TRIGGER_MAX)}})}else{T.forEach(e=>{if(e.alive)B.dealDmg(me,e,.95,'magic')})}if(j>=10){T.forEach(e=>{if(e.alive)B.dealDmg(me,e,22,'magic')});B.log(`  💥手冲超10次！爆发22000%！`,'ultimate');break;}if(j>=5&&Math.random()<.35)break;}B.log(`  手冲结束：${j}次判定 ${sw}次蛇鲸`,'system');}},
+    use(B,me,T){me.stats.kidneyWarrior=(me.stats.kidneyWarrior||0)+1;if(me.stats.kidneyWarrior>=2)B.addBuff(me,'kidney_warrior',{val:.2*me.stats.kidneyWarrior,dur:999});B.log(`🌍 ${me.name}「手冲世界」！`,'ultimate');T.forEach(e=>{const d=B.dealDmg(me,e,1.85,'magic');B.log(`  →${e.name}: ${d}法伤`,'combat')});let j=0,sw=0;while(true){j++;const isSW=j<=3?(Math.random()<.25):(Math.random()<.3);if(isSW){sw++;T.forEach(e=>{if(e.alive){const d=B.dealDmg(me,e,j<=3?2.2:.7,'magic');B.log(`  🐋蛇鲸！→${e.name}: ${d}`,'combat')}});B.getTeam(me).forEach(a=>{if(a.alive){B.healChar(a,100);a.stamina=Math.min(a.stamina+2,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+2,TRIGGER_MAX)}})}else{T.forEach(e=>{if(e.alive)B.dealDmg(me,e,.95,'magic')})}if(j>=10){T.forEach(e=>{if(e.alive)B.dealDmg(me,e,22,'magic')});B.log(`  💥手冲超10次！爆发22000%！`,'ultimate');break;}if(j>=5&&Math.random()<.35)break;}B.log(`  手冲结束：${j}次判定 ${sw}次蛇鲸`,'system');}},
   recall:{name:'两个卤蛋的欢乐时光',desc:'退场2回合，回来时伤害+100%',
     use(B,me){B.addBuff(me,'egg_power',{val:1.0,dur:999});B.addDebuff(me,'offstage',{dur:2});B.log(`🥚 ${me.name}「卤蛋」！退场2回合，伤+100%`,'skill')}}
 },
@@ -338,7 +338,7 @@ toma:{
   skills:[
     {id:'s1',name:'小学大喊',cost:1,tv:2,targetType:'self',
      desc:'嘲讽1-4名敌人，护盾+1000，30%伤害反伤，队友+200HP+100盾',
-     use(B,me,T){me.shield+=1000;B.addBuff(me,'dmg_reduce_reflect',{val:.3,dur:3});const es=B.getEnemies(me).filter(e=>e.alive);const r=Math.random();const n=r<.3?4:r<.5?3:r<.7?2:1;[...es].sort(()=>Math.random()-.5).slice(0,n).forEach(e=>B.addDebuff(e,'taunted',{target:me,dur:3}));B.getTeam(me).forEach(a=>{if(a.alive&&a._uid!==me._uid){B.healChar(a,200);a.shield+=100;a.stamina=Math.min(a.stamina+1,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+1,TRIGGER_MAX)}});B.log(`${me.name}「小学大喊」嘲讽${n}人，护盾+1000，队友增援`,'skill')}},
+     use(B,me,T){me.shield+=1000;B.addBuff(me,'dmg_reduce_reflect',{val:.3,dur:3});me.triggerValue=Math.min(me.triggerValue+2;const es=B.getEnemies(me).filter(e=>e.alive);const r=Math.random();const n=r<.3?4:r<.5?3:r<.7?2:1;[...es].sort(()=>Math.random()-.5).slice(0,n).forEach(e=>B.addDebuff(e,'taunted',{target:me,dur:3}));B.getTeam(me).forEach(a=>{if(a.alive&&a._uid!==me._uid){B.healChar(a,200);a.shield+=100;a.stamina=Math.min(a.stamina+1,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+1,TRIGGER_MAX)}});B.log(`${me.name}「小学大喊」嘲讽${n}人，护盾+1000，队友增援`,'skill')}},
     {id:'s2',name:'铅笔三联戳',cost:2,tv:3,targetType:'single_enemy',
      desc:'三连击：90%/130%/170%体术',
      use(B,me,T){const t=T[0];B.log(`${me.name}「铅笔三联戳」`,'skill');[.9,1.3,1.7].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'physical');B.log(`  戳${i+1}→${t.name}: ${d}`,'combat')})}},
