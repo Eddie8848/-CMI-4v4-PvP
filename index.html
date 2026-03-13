@@ -338,7 +338,7 @@ toma:{
   skills:[
     {id:'s1',name:'小学大喊',cost:1,tv:2,targetType:'self',
      desc:'嘲讽1-4名敌人，护盾+1000，30%伤害反伤，队友+200HP+100盾',
-     use(B,me,T){me.shield+=1000;B.addBuff(me,'dmg_reduce_reflect',{val:.3,dur:3});me.triggerValue=Math.min(me.triggerValue+2;const es=B.getEnemies(me).filter(e=>e.alive);const r=Math.random();const n=r<.3?4:r<.5?3:r<.7?2:1;[...es].sort(()=>Math.random()-.5).slice(0,n).forEach(e=>B.addDebuff(e,'taunted',{target:me,dur:3}));B.getTeam(me).forEach(a=>{if(a.alive&&a._uid!==me._uid){B.healChar(a,200);a.shield+=100;a.stamina=Math.min(a.stamina+1,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+1,TRIGGER_MAX)}});B.log(`${me.name}「小学大喊」嘲讽${n}人，护盾+1000，队友增援`,'skill')}},
+     use(B,me,T){me.shield+=1000;B.addBuff(me,'dmg_reduce_reflect',{val:.3,dur:3});me.triggerValue=Math.min;const es=B.getEnemies(me).filter(e=>e.alive);const r=Math.random();const n=r<.3?4:r<.5?3:r<.7?2:1;[...es].sort(()=>Math.random()-.5).slice(0,n).forEach(e=>B.addDebuff(e,'taunted',{target:me,dur:3}));B.getTeam(me).forEach(a=>{if(a.alive&&a._uid!==me._uid){B.healChar(a,200);a.shield+=100;a.stamina=Math.min(a.stamina+1,a.maxStamina);a.triggerValue=Math.min(a.triggerValue+1,TRIGGER_MAX)}});B.log(`${me.name}「小学大喊」嘲讽${n}人，护盾+1000，队友增援`,'skill')}},
     {id:'s2',name:'铅笔三联戳',cost:2,tv:3,targetType:'single_enemy',
      desc:'三连击：90%/130%/170%体术',
      use(B,me,T){const t=T[0];B.log(`${me.name}「铅笔三联戳」`,'skill');[.9,1.3,1.7].forEach((m,i)=>{const d=B.dealDmg(me,t,m,'physical');B.log(`  戳${i+1}→${t.name}: ${d}`,'combat')})}},
