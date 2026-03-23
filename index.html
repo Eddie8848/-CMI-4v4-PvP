@@ -790,194 +790,31 @@ kazuo:{
 },
   // ───── 米卡·米老鼠 ─────
 mika_mouse:{
-  id:'mika_mouse',
-  name:'米卡·米老鼠 SSR',
-  rarity:'SSR',
-  role:'Rizz型输出',
-  emoji:'🐭',
-  color:'#ff6b35',
-  hp:1000,
-  atk:100,
-  initStamina:5,
-  maxStamina:8,
-  initShield:0,
-  initStats:{
-    meiDao:2,       // 名刀司命：当前阻挡次数
-    meiDaoRefresh:0,// 距离刷新还有几回合
-    reviveUsed:false,// 复活是否已使用
-    rizz_targets:[] // W Rizz 吸引目标的 uid 列表
+  id:'mika_mouse',name:'米卡·米老鼠 SSR',rarity:'SSR',role:'Rizz型输出',emoji:'🐭',color:'#ff6b35',
+  hp:1000,atk:100,initStamina:5,maxStamina:8,initShield:0,
+  initStats:{meiDao:2,meiDaoRefresh:0,reviveUsed:false},
+  passiveDesc:'臭不要脸：名刀司命阻挡2次致命伤（每2回合刷新）；守护空时死亡可复活一次',
+  applyPassive(c,B){
+    c.stats.meiDaoRefresh=(c.stats.meiDaoRefresh||0)+1;
+    if(c.stats.meiDaoRefresh>=2){c.stats.meiDaoRefresh=0;c.stats.meiDao=2;B.log(`🗡️ ${c.name}名刀司命刷新（2次）`,'system');}
   },
-  passiveDesc:'臭不要脸：名刀司命可阻挡2次致命伤（每2回合刷新）；守护不可用期间死亡可复活一次',
-
-  // ── 被动：名刀司命 + 复活 ──
-  // 在 Battle 的 applyHp 方法中会检查 _uid 上的 mika_mouse 被动
-  // 这里我们通过 applyPassive 每回合刷新刀次数
-  applyPassive(c, B){
-    // 刷新名刀次数（每2回合）
-    c.stats.meiDaoRefresh = (c.stats.meiDaoRefresh || 0) + 1;
-    if(c.stats.meiDaoRefresh >= 2){
-      c.stats.meiDaoRefresh = 0;
-      c.stats.meiDao = 2; // 刷新为2次
-      B.log(`🗡️ ${c.name}的名刀司命已刷新（2次）`, 'system');
-    }
-  },
-
   skills:[
-    // ── 技能1：五个孩子 ──
-    {
-      id:'s1',
-      name:'五个孩子',
-      sp:1,
-      tv:2,
-      target:'single_enemy',
-      desc:'5孩连砸：50→60→72→87→104体术，每孩+20%伤害',
-      use(B, me, T){
-        const target = T[0];
-        if(!target || !target.alive) return;
-        B.log(`🐭 ${me.name}「五个孩子」→ ${target.name}！`, 'skill');
-        let dmg = 50;
-        let total = 0;
-        for(let i = 0; i < 5; i++){
-          const d = Math.floor(dmg);
-          // 直接调用物理伤害（绕过百分比乘数，用固定值）
-          if(target.alive){
-            B.applyHp(target, d);
-            total += d;
-            B.log(`  孩子${i+1}砸中→${target.name}: ${d}伤害`, 'combat');
-          }
-          dmg *= 1.2;
-        }
-        B.log(`  总计：${total}体术伤害`, 'combat');
-      }
-    },
-
-    // ── 技能2：W Rizz ──
-    {
-      id:'s2',
-      name:'W Rizz',
-      sp:2,
-      tv:3,
-      target:'all_enemies',
-      desc:'吸引随机2名敌人，吸取各25%当前HP，目标2回合内80%不攻击自己',
-      use(B, me, T){
-        const enemies = T.filter(e => e.alive);
-        if(!enemies.length) return;
-        // 随机选2个（或少于2个时全选）
-        const shuffled = [...enemies].sort(() => Math.random() - 0.5);
-        const targets = shuffled.slice(0, Math.min(2, shuffled.length));
-        me.stats.rizz_targets = targets.map(t => t._uid);
-        B.log(`🐭 ${me.name}「W Rizz」魅力爆发！吸引${targets.length}名目标！`, 'skill');
-        targets.forEach(t => {
-          const drain = Math.floor(t.hp * 0.25);
-          B.applyHp(t, drain); // 扣除目标HP
-          B.heal(me, drain);   // 回复米卡HP
-          B.debuff(t, 'rizz_charmed', { dur:2, src_uid: me._uid });
-          B.log(`  → ${t.name}: -${drain}HP，魅惑2回合（80%不攻击米卡）`, 'combat');
-        });
-      }
-    },
-
-    // ── 技能3：西班牙强吻 ──
-    {
-      id:'s3',
-      name:'西班牙强吻',
-      sp:3,
-      tv:4,
-      target:'all_enemies',
-      desc:'随机命中1(90%)/2(60%)/3(40%)/4(30%)人，牵制+全队额外攻击+15%伤；女=诱惑，男=精神创伤',
-      use(B, me, T){
-        const enemies = T.filter(e => e.alive);
-        if(!enemies.length){ B.log(`${me.name} 没有敌人可以强吻……`, 'system'); return; }
-        // 独立判定每个人是否命中（概率递减）
-        const probs = [0.9, 0.6, 0.4, 0.3];
-        const shuffled = [...enemies].sort(() => Math.random() - 0.5);
-        const kissed = [];
-        for(let i = 0; i < Math.min(shuffled.length, 4); i++){
-          if(Math.random() < probs[i]) kissed.push(shuffled[i]);
-        }
-        B.log(`🐭 ${me.name}「西班牙强吻」！命中 ${kissed.length} 人！`, 'skill');
-        if(!kissed.length){
-          B.log(`  强吻失败！所有人躲开了……`, 'combat');
-          return;
-        }
-        kissed.forEach(t => {
-          // 判断性别（female list）
-          const femaleIds = ['mitsuki','addy','lua','madame','mika','nagisa','seia','hina'];
-          const isFemale = femaleIds.includes(t.id);
-          if(isFemale){
-            B.debuff(t, 'seduced', { dur:2 });
-            B.log(`  → ${t.name}（女）：被诱惑！2回合内技能40%打到自己队友`, 'combat');
-          } else {
-            B.debuff(t, 'mental_trauma', { dur:2 });
-            B.log(`  → ${t.name}（男）：精神创伤！2回合内技能40%失败`, 'combat');
-          }
-        });
-        // 全队本回合伤害+15%
-        B.getTeam(me).forEach(a => {
-          if(a.alive) B.buff(a, 'skill_up', { v:0.15, dur:1 });
-        });
-        B.log(`  全队本回合伤害+15%！`, 'heal');
-        // 如果有命中，给全队一次额外行动机会（通过+体力模拟）
-        B.getTeam(me).forEach(a => {
-          if(a.alive && a._uid !== me._uid){
-            a.stamina = Math.min(a.stamina + 2, a.maxStamina);
-          }
-        });
-        B.log(`  队友额外行动！（体力+2）`, 'heal');
-      }
-    }
+    {id:'s1',name:'五个孩子',cost:1,tv:2,targetType:'single_enemy',
+     desc:'5孩连砸：50→60→72→87→104体术，每孩+20%伤害',
+     use(B,me,T){const t=T[0];if(!t||!t.alive)return;let dmg=50;let total=0;B.log(`🐭 ${me.name}「五个孩子」→${t.name}！`,'skill');for(let i=0;i<5;i++){const d=Math.floor(dmg);if(t.alive){B.applyHpDmg(t,d);total+=d;B.log(`  孩子${i+1}→${t.name}: ${d}伤`,'combat');}dmg*=1.2;}B.log(`  五孩合计：${total}体术伤害`,'combat');}},
+    {id:'s2',name:'W Rizz',cost:2,tv:3,targetType:'all_enemies',
+     desc:'吸引随机2名敌人，吸取各25%当前HP，目标2回合80%不攻击米卡',
+     use(B,me,T){const es=T.filter(e=>e.alive);if(!es.length)return;const tgts=[...es].sort(()=>Math.random()-.5).slice(0,Math.min(2,es.length));B.log(`🐭 ${me.name}「W Rizz」魅力爆发！`,'skill');tgts.forEach(t=>{const drain=Math.floor(t.hp*.25);B.applyHpDmg(t,drain);B.healChar(me,drain);B.addDebuff(t,'rizz_charmed',{dur:2,src_uid:me._uid});B.log(`  →${t.name}: -${drain}HP，魅惑2回`,'combat')});}},
+    {id:'s3',name:'西班牙强吻',cost:3,tv:4,targetType:'all_enemies',
+     desc:'命中1(90%)/2(60%)/3(40%)/4(30%)人；女=诱惑40%打队友，男=精神创伤40%失败；全队+15%伤+体力+2',
+     use(B,me,T){const es=T.filter(e=>e.alive);if(!es.length){B.log(`${me.name} 没有目标……`,'system');return;}const probs=[.9,.6,.4,.3];const shuffled=[...es].sort(()=>Math.random()-.5);const kissed=[];for(let i=0;i<Math.min(shuffled.length,4);i++){if(Math.random()<probs[i])kissed.push(shuffled[i]);}B.log(`🐭 ${me.name}「西班牙强吻」！命中${kissed.length}人！`,'skill');if(!kissed.length){B.log(`  强吻失败！所有人躲开……`,'combat');return;}const femaleIds=['mitsuki','addy','lua','madame','mika','nagisa','seia','hina'];kissed.forEach(t=>{if(femaleIds.includes(t.id)){B.addDebuff(t,'seduced',{dur:2});B.log(`  →${t.name}（女）诱惑！2回技能40%打队友`,'combat');}else{B.addDebuff(t,'mental_trauma',{dur:2});B.log(`  →${t.name}（男）精神创伤！2回技能40%失败`,'combat');}});B.getTeam(me).forEach(a=>{if(a.alive){B.addBuff(a,'skill_up',{val:.15,dur:1});if(a._uid!==me._uid)a.stamina=Math.min(a.stamina+2,a.maxStamina);}});B.log(`  全队+15%伤害！队友体力+2！`,'heal');}}
   ],
-
-  // ── 大招：Spanish Drama ──
-  ult:{
-    name:'Spanish Drama',
-    tv:10,
-    target:'all_enemies',
-    desc:'随机命中1-4人：体力-2，触发-4；3回合内敌方技能70%失败；己方3回合+25%伤',
-    use(B, me, T){
-      const enemies = T.filter(e => e.alive);
-      if(!enemies.length) return;
-      const probs = [0.9, 0.6, 0.4, 0.3];
-      const shuffled = [...enemies].sort(() => Math.random() - 0.5);
-      const drama_victims = [];
-      for(let i = 0; i < Math.min(shuffled.length, 4); i++){
-        if(Math.random() < probs[i]) drama_victims.push(shuffled[i]);
-      }
-      B.log(`🎭 ${me.name}「SPANISH DRAMA」！命中 ${drama_victims.length} 人！`, 'ult');
-      drama_victims.forEach(t => {
-        t.stamina = Math.max(0, t.stamina - 2);
-        t.triggerValue = Math.max(0, t.triggerValue - 4);
-        B.log(`  → ${t.name}: 体力-2，触发值-4`, 'combat');
-      });
-      // 对整个敌方队伍施加 spanish_drama（3回合内技能70%失败）
-      enemies.forEach(e => {
-        B.debuff(e, 'spanish_drama', { dur:3 });
-      });
-      B.log(`  敌方全体陷入Spanish Drama！3回合内技能70%失败！`, 'combat');
-      // 己方全队伤害+25%（3回合）
-      B.getTeam(me).forEach(a => {
-        if(a.alive) B.buff(a, 'skill_up', { v:0.25, dur:3 });
-      });
-      B.log(`  己方全队 +25%伤害（3回合）！`, 'heal');
-    }
-  },
-
-  // ── 回想 ──
-  recall:{
-    name:'老鼠的恋爱',
-    desc:'全队回复20%HP，自身恢复名刀司命次数至2并重置刷新计时',
-    use(B, me){
-      B.getTeam(me).forEach(a => {
-        if(a.alive) B.heal(a, Math.floor(a.maxHp * 0.2));
-      });
-      me.stats.meiDao = 2;
-      me.stats.meiDaoRefresh = 0;
-      B.log(`🐭 ${me.name}「老鼠的恋爱」！全队回复20%HP，名刀刷新！`, 'heal');
-    }
-  }
+  ultimate:{name:'Spanish Drama',tv:10,targetType:'all_enemies',
+    desc:'命中1-4人：体力-2，触发-4；全体敌人3回合技能70%失败；己方3回+25%伤',
+    use(B,me,T){const es=T.filter(e=>e.alive);if(!es.length)return;const probs=[.9,.6,.4,.3];const shuffled=[...es].sort(()=>Math.random()-.5);const victims=[];for(let i=0;i<Math.min(shuffled.length,4);i++){if(Math.random()<probs[i])victims.push(shuffled[i]);}B.log(`🎭 ${me.name}「SPANISH DRAMA」！命中${victims.length}人！`,'ultimate');victims.forEach(t=>{t.stamina=Math.max(0,t.stamina-2);t.triggerValue=Math.max(0,t.triggerValue-4);B.log(`  →${t.name}: 体力-2，触发-4`,'combat');});es.forEach(e=>B.addDebuff(e,'spanish_drama',{dur:3}));B.log(`  敌方全体3回合技能70%失败！`,'combat');B.getTeam(me).forEach(a=>{if(a.alive)B.addBuff(a,'skill_up',{val:.25,dur:3})});B.log(`  己方全队+25%伤（3回合）！`,'heal');}},
+  recall:{name:'老鼠的恋爱',desc:'全队回复20%HP，名刀司命刷新至2次',
+    use(B,me){B.getTeam(me).forEach(a=>{if(a.alive)B.healChar(a,Math.floor(a.maxHp*.2))});me.stats.meiDao=2;me.stats.meiDaoRefresh=0;B.log(`🐭 ${me.name}「老鼠的恋爱」全队+20%HP，名刀刷新！`,'heal')}}
 },
-// ───── 米卡·米老鼠 结束 ─────
-
 
 };
 
@@ -1078,6 +915,11 @@ class Battle{
   applyHpDmg(c,dmg){
     if(dmg<=0||!c)return;
     if(!c.alive)return;
+    // 名刀司命 (mika_mouse) – block up to 2 lethal hits
+    if(c.id==='mika_mouse'&&c.hp-dmg<=0){
+      if((c.stats.meiDao||0)>0){c.stats.meiDao--;c.hp=1;this.log(`🗡️ ${c.name}名刀司命！阻挡致命伤（剩余${c.stats.meiDao}次）`,'system');return;}
+      else if(!c.stats.reviveUsed){c.stats.reviveUsed=true;c.hp=Math.floor(c.maxHp*.3);this.log(`🐭 ${c.name}奇迹复活！（30%HP）`,'heal');return;}
+    }
     // Undying (seia)
     if(c.buffs.find(b=>b.type==='undying')&&c.hp-dmg<=0){c.buffs=c.buffs.filter(b=>b.type!=='undying');c.hp=1;this.log(`  🌹 ${c.name}免死触发！`,'system');return;}
     // Scriptwriter bad ending: death = draw
@@ -1255,14 +1097,6 @@ function advanceTurn(){
     if(c&&c.alive)break;
     GS.turnIdx++;
   }
-  // Spanish Drama：技能70%失败
-if(c.debuffs.find(d=>d.type==='spanish_drama')&&Math.random()<.7){
-  B.log(`🎭 ${c.name}精神创伤，行动失败！`,'combat');GS.qIdx++;...return;
-}
-// Mental Trauma：技能40%失败  
-if(c.debuffs.find(d=>d.type==='mental_trauma')&&Math.random()<.4){
-  B.log(`😵 ${c.name}精神创伤，技能失败！`,'combat');GS.qIdx++;...return;
-}
   if(GS.turnIdx>=GS.turnQueue.length){renderBattleUI();setTimeout(startRound,400);return;}
   const e=GS.turnQueue[GS.turnIdx];
   const c=GS.battle.teams[e.ti][e.ci];
@@ -1278,6 +1112,10 @@ if(c.debuffs.find(d=>d.type==='mental_trauma')&&Math.random()<.4){
   if(doubt&&Math.random()<.5){GS.battle.log(`❓ ${c.name}Doubt失误，行动取消！`,'combat');GS.turnIdx++;renderBattleUI();setTimeout(advanceTurn,400);return;}
   // Discord check
   if(c.debuffs.find(d=>d.type==='discord')&&Math.random()<.6){GS.battle.log(`🎸 ${c.name}混乱！行动失败！`,'combat');GS.turnIdx++;renderBattleUI();setTimeout(advanceTurn,400);return;}
+  // Spanish Drama check (70% skill fail)
+  if(c.debuffs.find(d=>d.type==='spanish_drama')&&Math.random()<.7){GS.battle.log(`🎭 ${c.name}陷入Spanish Drama！技能失败！`,'combat');GS.turnIdx++;renderBattleUI();setTimeout(advanceTurn,400);return;}
+  // Mental Trauma check (40% skill fail)
+  if(c.debuffs.find(d=>d.type==='mental_trauma')&&Math.random()<.4){GS.battle.log(`😵 ${c.name}精神创伤！技能失败！`,'combat');GS.turnIdx++;renderBattleUI();setTimeout(advanceTurn,400);return;}
   // Time seal (nagisa ult)
   if(c.debuffs.find(d=>d.type==='time_seal')&&Math.random()<.5){GS.battle.log(`⏳ ${c.name}时间封印！行动失败！`,'combat');GS.turnIdx++;renderBattleUI();setTimeout(advanceTurn,400);return;}
   if(e.ti===0){GS.phase='player_turn';renderBattleUI();renderActionPanel(c);}
@@ -1478,7 +1316,7 @@ function renderTeam(ti,cid,isEnemy){
     let dots='';for(let i=0;i<Math.min(c.maxStamina,10);i++)dots+=`<div class="stamina-dot ${i<c.stamina?'filled':''}"></div>`;
     const tvCls=c.triggerValue>=(CHAR_DEFS[c.id].ultimate?.tv||TRIGGER_MAX)?'ready':'';
     const bBadges=c.buffs.filter(b=>b.dur!==0).slice(0,5).map(b=>{const n={skill_up:'技能↑',saint_mode:'圣人',kidney_warrior:'肾斗士',crit_sure:'必暴',dodge_up:'闪避↑',omega_domain:'Ω域',usogui:'Usogui',ap_plus:'AP+',egg_power:'卤蛋↑',free_ult:'免费大招',abyss_guaranteed:'渊印保',consul:'执政官',trinity:'合体',tiga_domain:'迪迦域',royal_domain:'王域',time_snipe:'时间狙',quantum_state:'量子态',quantum_collapse:'量子稳定',dirac_domain:'狄拉克域',xeno_domain:'吞噬域',info_domain:'信息域',absolute_foresight:'绝对预知',stardust:'星尘',reflect_shield:'反弹盾',undying:'免死',premium:'高级',season_pass:'季票',parasite_mirror:'镜像',parasite_kill:'寄生击杀',terminus:'终局',charged_shot:'强化射击',first_action:'优先行动',true_resist:'真伤抵抗',power_form:'巨力形',speed_form:'速度形',star_burst:'星蚀爆发',sure_hit:'必中',info_counter:'信息反击'}[b.type]||b.type;return`<span class="status-badge buff">${n}${b.dur&&b.dur!==999?`(${b.dur})`:'∞'}</span>`}).join('');
-    const dBadges=c.debuffs.slice(0,5).map(d=>{const n={stun:'眩晕',freeze:'冰冻',doubt:'Doubt',silence:'沉默',fear:'恐惧',dmg_down:'伤↓',taunted:'嘲讽',marked:'标记',bleed:'持伤',burn:'灼烧',spore:'孢云',tv_slow:'触↓',duel_mark:'决斗',residual_echo:'残响',offstage:'退场',revolution:'革命',gravity:'重力',discord:'混乱',hourglass:'沙漏',time_trap:'时间陷阱',time_seal:'时封',no_ult:'封招',expensive:'涨价',season_tax:'税收',recall_blocked:'回想封',cognitive_disorder:'认知错乱',paradox:'悖论',dream_poison:'梦毒',atom_mark:'原子',atom_invasion:'侵入',blind:'致盲',cursed_rng:'诅咒',heal_cut:'回复↓',overheat:'僵直',stardust_exposed:'星尘暴露'}[d.type]||d.type;return`<span class="status-badge debuff">${n}(${d.dur||1})</span>`}).join('');
+    const dBadges=c.debuffs.slice(0,5).map(d=>{const n={stun:'眩晕',freeze:'冰冻',doubt:'Doubt',silence:'沉默',fear:'恐惧',dmg_down:'伤↓',taunted:'嘲讽',marked:'标记',bleed:'持伤',burn:'灼烧',spore:'孢云',tv_slow:'触↓',duel_mark:'决斗',residual_echo:'残响',offstage:'退场',revolution:'革命',gravity:'重力',discord:'混乱',hourglass:'沙漏',time_trap:'时间陷阱',time_seal:'时封',no_ult:'封招',expensive:'涨价',season_tax:'税收',recall_blocked:'回想封',cognitive_disorder:'认知错乱',paradox:'悖论',dream_poison:'梦毒',atom_mark:'原子',atom_invasion:'侵入',blind:'致盲',cursed_rng:'诅咒',heal_cut:'回复↓',overheat:'僵直',stardust_exposed:'星尘暴露',rizz_charmed:'魅惑',seduced:'诱惑',mental_trauma:'精神创伤',spanish_drama:'Drama'}[d.type]||d.type;return`<span class="status-badge debuff">${n}(${d.dur||1})</span>`}).join('');
     div.innerHTML=`<div class="char-row-top"><div class="char-emoji-sm">${c.alive?c.emoji:'💀'}</div><div class="char-info-sm"><div class="name">${c.name.replace(/ (SSSSR\+?|SSSR|SSR|SR|SP|UR|God|AT)$/,'')}</div><div class="rarity rarity-${c.rarity}">${c.rarity}</div></div><div class="char-stats-right"><div class="stamina-dots">${dots}</div><div class="trigger-val ${tvCls}">⚡${c.triggerValue}</div></div></div><div class="hp-bar-wrap"><div class="bar-labels"><span>HP ${c.hp}/${c.maxHp}</span><span>${c.shield>0?`🛡${c.shield}`:''}</span></div><div class="bar-track"><div class="bar-fill hp-fill ${hpCls}" style="width:${hpPct}%"></div></div>${c.shield>0?`<div class="bar-track" style="height:5px;margin-top:2px"><div class="bar-fill shield-fill" style="width:${spPct}%"></div></div>`:''}</div>${bBadges||dBadges?`<div class="status-row">${bBadges}${dBadges}</div>`:''}`;
     con.appendChild(div);
   });
@@ -1509,5 +1347,3 @@ showTitle();
 </script>
 </body>
 </html>
-
-
